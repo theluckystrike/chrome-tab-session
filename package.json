@@ -1,0 +1,37 @@
+{
+    "name": "chrome-tab-session",
+    "version": "0.1.0",
+    "description": "Tab session management for Chrome extensions — save, restore, export tab sessions, window layouts, and workspace management for MV3.",
+    "author": "Zovo <hello@zovo.one>",
+    "license": "MIT",
+    "keywords": [
+        "chrome-extension",
+        "session",
+        "tabs",
+        "session-manager",
+        "workspace",
+        "restore",
+        "manifest-v3",
+        "browser-extension",
+        "tab-save"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/theluckystrike/chrome-tab-session.git"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.260",
+        "typescript": "^5.3.3"
+    }
+}
