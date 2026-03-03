@@ -1,12 +1,32 @@
-# chrome-tab-session — Tab Session Manager for Extensions
-> **Built by [Zovo](https://zovo.one)** | `npm i chrome-tab-session`
+# chrome-tab-session
 
-Save, restore, export/import tab sessions and window layouts.
+Manage tab sessions in Chrome extensions.
 
-```typescript
-import { SessionManager } from 'chrome-tab-session';
-const mgr = new SessionManager();
-await mgr.saveCurrent('Work Tabs');
-await mgr.restore(sessionId);
+## Overview
+
+chrome-tab-session provides utilities to save, restore, and manage tab sessions.
+
+## Installation
+
+```bash
+npm install chrome-tab-session
 ```
-MIT License
+
+## Usage
+
+```javascript
+import { TabSession } from 'chrome-tab-session';
+
+const session = await TabSession.save();
+await TabSession.restore(session);
+```
+
+## API
+
+- `save()` - Save current tabs
+- `restore(session)` - Restore tabs
+- `list()` - List saved sessions
+
+## License
+
+MIT
