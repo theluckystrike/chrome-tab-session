@@ -1,217 +1,172 @@
 # chrome-tab-session
 
-> Tab session management for Chrome extensions — save, restore, export tab sessions, window layouts, and workspace management for Manifest V3.
+Tab session management for Chrome extensions. Save, restore, export, and import tab sessions across windows. Built for Manifest V3.
 
-Save your current tab workspace and restore it later. Perfect for developers, researchers, and power users who work with many tabs.
+Save your current tab workspace and bring it back later. Built for developers, researchers, and anyone who juggles dozens of tabs at once.
 
-## Features
 
-- **Save Sessions**: Save all tabs from the current window or all windows
-- **Restore Sessions**: Restore tabs to a new window or current window
-- **Export/Import**: Export sessions as JSON for backup or sharing
-- **Persistent Storage**: Sessions persist across browser restarts
-- **Manifest V3**: Fully compatible with Chrome's Manifest V3
-
-## Installation
+INSTALL
 
 ```bash
 npm install chrome-tab-session
 ```
 
-## Quick Start
+
+QUICK START
 
 ```typescript
 import { SessionManager } from 'chrome-tab-session';
 
-// Create a session manager (optional custom storage key)
 const sessions = new SessionManager();
 
-// Save current window tabs as a session
 const session = await sessions.saveCurrent('My Research');
 
-// Later, restore that session in a new window
 await sessions.restore(session.id);
 ```
 
-## API Reference
 
-### Constructor
+FEATURES
+
+- Save all tabs from the current window or every open window
+- Restore sessions into a new window or the current one
+- Export and import sessions as JSON for backup or sharing
+- Sessions persist in chrome.storage.local across browser restarts
+- Pinned tab state is preserved on save and restore
+- Fully compatible with Chrome Manifest V3
+
+
+API
+
+SessionManager accepts an optional storage key. Defaults to `__tab_sessions__`.
 
 ```typescript
-new SessionManager(storageKey?: string)
+const sessions = new SessionManager();
+const sessions = new SessionManager('custom-key');
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `storageKey` | `string` | `__tab_sessions__` | Custom key for storing sessions in chrome.storage.local |
+saveCurrent(name) returns Promise<TabSession>
 
-### Methods
-
-#### `saveCurrent(name: string): Promise<TabSession>`
-
-Saves all tabs from the current window as a named session.
+Saves all tabs from the active window as a named session.
 
 ```typescript
 const session = await sessions.saveCurrent('Morning Work');
-console.log(session.id); // e.g., "m5kd2p"
+console.log(session.id);
 ```
 
-**Returns:** `Promise<TabSession>` — The created session object
+saveAllWindows(name) returns Promise<TabSession>
 
----
-
-#### `saveAllWindows(name: string): Promise<TabSession>`
-
-Saves tabs from all open windows as a single session.
+Saves tabs from every open window into one session. The returned object includes a windowCount field.
 
 ```typescript
-const allWindows = await sessions.saveAllWindows('Full Backup');
-console.log(allWindows.tabs.length); // Total tabs across all windows
-console.log(allWindows.windowCount); // Number of windows saved
+const full = await sessions.saveAllWindows('Full Backup');
+console.log(full.tabs.length, full.windowCount);
 ```
 
-**Returns:** `Promise<TabSession>` — The created session object
+restore(sessionId, newWindow?) returns Promise<void>
 
----
-
-#### `restore(sessionId: string, newWindow?: boolean): Promise<void>`
-
-Restores a saved session. By default, opens tabs in a new window.
+Restores a saved session. Pass `true` (default) to open in a new window, or `false` to open tabs in the current window. Throws if the session ID is not found.
 
 ```typescript
-// Restore in a new window (default)
-await sessions.restore('session-id-123');
-
-// Restore in current window instead
-await sessions.restore('session-id-123', false);
+await sessions.restore(session.id);
+await sessions.restore(session.id, false);
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `sessionId` | `string` | — | The ID of the session to restore |
-| `newWindow` | `boolean` | `true` | Whether to open in a new window |
+getAll() returns Promise<TabSession[]>
 
-**Throws:** `Error` if session not found
-
----
-
-#### `getAll(): Promise<TabSession[]>`
-
-Retrieves all saved sessions.
+Returns every saved session from storage.
 
 ```typescript
-const allSessions = await sessions.getAll();
-
-for (const session of allSessions) {
-  console.log(`${session.name}: ${session.tabs.length} tabs`);
+const all = await sessions.getAll();
+for (const s of all) {
+  console.log(s.name, s.tabs.length);
 }
 ```
 
-**Returns:** `Promise<TabSession[]>` — Array of all saved sessions
+delete(sessionId) returns Promise<void>
 
----
-
-#### `delete(sessionId: string): Promise<void>`
-
-Deletes a saved session.
+Removes a session from storage by ID.
 
 ```typescript
-await sessions.delete('session-id-to-delete');
+await sessions.delete('m5kd2p');
 ```
 
----
+export() returns Promise<string>
 
-#### `export(): Promise<string>`
-
-Exports all sessions as a JSON string. Useful for backups.
+Serializes all sessions to a JSON string.
 
 ```typescript
 const json = await sessions.export();
-
-// Save to file or send to server
-console.log(json);
-// {
-//   "sessions": [...]
-// }
 ```
 
-**Returns:** `Promise<string>` — JSON string of all sessions
+import(json) returns Promise<number>
 
----
-
-#### `import(json: string): Promise<number>`
-
-Imports sessions from a JSON string.
+Parses a JSON string and appends the sessions to storage. Returns the number of sessions imported.
 
 ```typescript
-const jsonFromBackup = fs.readFileSync('sessions-backup.json', 'utf-8');
-const count = await sessions.import(jsonFromBackup);
-console.log(`Imported ${count} sessions`);
+const count = await sessions.import(json);
+console.log(count);
 ```
 
-**Returns:** `Promise<number>` — Number of sessions imported
 
----
-
-### TypeScript Interfaces
+TABSESSION INTERFACE
 
 ```typescript
 interface TabSession {
-  id: string;           // Unique session identifier
-  name: string;         // User-defined session name
+  id: string
+  name: string
   tabs: Array<{
-    url: string;        // Tab URL
-    title: string;      // Tab title
-    pinned?: boolean;   // Whether tab was pinned
-  }>;
-  createdAt: number;    // Unix timestamp
-  windowCount?: number; // Number of windows (for saveAllWindows)
+    url: string
+    title: string
+    pinned?: boolean
+  }>
+  createdAt: number
+  windowCount?: number
 }
 ```
 
-## Complete Example
+
+PERMISSIONS
+
+Your manifest.json needs tabs and storage.
+
+```json
+{
+  "permissions": ["tabs", "storage"]
+}
+```
+
+
+FULL EXAMPLE
 
 ```typescript
 import { SessionManager } from 'chrome-tab-session';
 
-// Initialize with optional custom storage key
-const sessions = new SessionManager('my-workspace-sessions');
+const sessions = new SessionManager('my-workspace');
 
-async function demo() {
-  // 1. Save current window
-  const workSession = await sessions.saveCurrent('Work Tasks');
-  console.log('Saved:', workSession.name);
+async function run() {
+  const work = await sessions.saveCurrent('Work Tabs');
 
-  // 2. List all sessions
   const all = await sessions.getAll();
-  console.log('Total sessions:', all.length);
+  console.log('Saved sessions', all.length);
 
-  // 3. Restore a session in a new window
-  await sessions.restore(workSession.id);
+  await sessions.restore(work.id);
 
-  // 4. Export for backup
   const backup = await sessions.export();
-  
-  // 5. Delete old sessions
-  await sessions.delete(workSession.id);
+
+  await sessions.delete(work.id);
 }
 
-demo();
+run();
 ```
 
-## Permissions Required
 
-Add the following to your `manifest.json`:
+LICENSE
 
-```json
-{
-  "permissions": [
-    "tabs",
-    "storage"
-  ]
-}
-```
+MIT. See LICENSE for the full text.
 
-## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+ABOUT
+
+chrome-tab-session is maintained by theluckystrike and published through zovo.one, a small studio focused on Chrome extensions and browser tooling.
+
+https://github.com/theluckystrike/chrome-tab-session
